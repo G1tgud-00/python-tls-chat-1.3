@@ -46,7 +46,7 @@ class ConnectionScreen(QWidget):
         portLabel = QLabel("Port", self)
         portLabel.setAlignment(QtCore.Qt.AlignRight)
         self.portTextbox = QLineEdit(self)
-        self.portTextbox.setText("9988")
+        self.portTextbox.setText("5000")
         grid.addWidget(portLabel, 1, 0)
         grid.addWidget(self.portTextbox, 1, 1)
 
@@ -71,7 +71,12 @@ class ConnectionScreen(QWidget):
     def onConnectClick(self):
         try:
             # Encryption configuration.
-            context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+            #context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+            context.minimum_version = ssl.TLSVersion.TLSv1_3
+            context.load_verify_locations(cafile="C:/Users/yetth/Documents/GitHub/python-tls-chat/cert/ca.crt")
+            context.load_cert_chain(certfile="C:/Users/yetth/Documents/GitHub/python-tls-chat/cert/client.crt", keyfile="C:/Users/yetth/Documents/GitHub/python-tls-chat/cert/client.key")
+            context.check_hostname = False
 
             # Creating the socket.
             mySocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
