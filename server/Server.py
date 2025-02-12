@@ -2,23 +2,48 @@
 # Developed by:
 # Shrey Tailor
 # -------------------------------------
-
+import requests
 import ssl
 import time
 import socket
 import threading
+import psutil
 from protocol import *
 
 
+def get_public_ip():
+    try:
+        response = requests.get("https://api.ipify.org?format=text")
+        return response.text
+    except Exception as e:
+        print(f"Error fetching public IP: {e}")
+        return None
+    
+def get_wifi_ipv4():
+    # Lấy danh sách các kết nối mạng
+    addrs = psutil.net_if_addrs()
+    for interface, addresses in addrs.items():
+        for addr in addresses:
+            # Kiểm tra nếu địa chỉ là IPv4 và thuộc Wi-Fi adapter
+            if addr.family == socket.AF_INET and ("Wi-Fi" in interface or "wlan" in interface.lower()):
+                return addr.address
+    return None
+#hostname = get_public_ip()
+#if hostname is None:
+hostname= get_wifi_ipv4()
 # Defining the constants required for the server.
-port = 9988
-hostname = "127.0.0.1"
+port = 5000
 
 # Encryption configuration.
-context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-context.load_cert_chain(certfile="cert.pem", keyfile="cert.pem")
-context.load_verify_locations("cert.pem")
-context.set_ciphers("AES128-SHA")
+#context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+context.minimum_version = ssl.TLSVersion.TLSv1_3
+#context.load_cert_chain(certfile="cert.pem", keyfile="cert.pem")
+context.load_cert_chain(certfile="C:/Users/yetth/Documents/GitHub/python-tls-chat/cert/server.crt", keyfile="C:/Users/yetth/Documents/GitHub/python-tls-chat/cert/server.key")
+context.load_verify_locations("C:/Users/yetth/Documents/GitHub/python-tls-chat/cert/ca.crt")
+context.set_ciphers("DEFAULT")
+context.verify_mode = ssl.CERT_REQUIRED
+context.check_hostname = False
 
 # Starting up the socket server.
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
